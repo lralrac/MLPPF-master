@@ -1,0 +1,87 @@
+{
+  "device": "cpu",
+  "model_name": "TextRNN",
+  "checkpoint_dir": "checkpoint_dir_piRNA",
+  "model_dir": "trained_model_piRNA",
+  "data": {
+
+    "generate_dict_using_json_files": true,
+    "generate_dict_using_all_json_files": true,
+    "generate_dict_using_pretrained_embedding": true,
+    "dict_dir": "dict_piRNA",
+    "num_worker": 8
+  },
+  "feature": {
+    "min_token_count": 0,
+    "min_char_count": 0,
+    "max_token_dict_size": 1000000,
+    "max_char_dict_size": 150000,
+    "max_token_len": 30,
+    "max_char_len": 1024,
+    "token_pretrained_file": "./pre-train-embeddings/embedding_char2vec_k_4_d_64.csv"
+  },
+  "train": {
+    "batch_size": 50,
+    "start_epoch": 1,
+    "num_epochs": 10,
+    "num_epochs_static_embedding": 0,
+    "decay_rate": 1.0,
+    "loss_type": "BCEWithLogitsLoss",
+    "visible_device_list": "0",
+    "hidden_layer_dropout": 0.5
+  },
+  "embedding": {
+    "dimension": 64,
+    "initializer": "uniform",
+    "fan_mode": "FAN_IN",
+    "uniform_bound": 0.25,
+    "random_stddev": 0.01,
+    "dropout": 0.0
+  },
+  "optimizer": {
+    "optimizer_type": "Adam",
+    "learning_rate": 0.008,
+    "adadelta_decay_rate": 0.95,
+    "adadelta_epsilon": 1e-08
+  },
+  "TextRNN": {
+    "hidden_dimension": 256,
+    "rnn_type": "GRU",
+    "num_layers": 1,
+    "doc_embedding_type": "Attention",
+    "attention_dimension": 16,
+    "bidirectional": true,
+    "head_number": 4,
+    "scaling_factor": 0.1,
+    "dv": 64,
+    "dk": 64,
+    "dropout": 0.5
+  },
+  "Transformer": {
+    "dim_model": 64,
+    "hidden": 1024,
+    "num_head": 8,
+    "dropout": 0.2,
+    "num_encoder": 6
+  },
+  "Textcnn": {
+    "kernel_size": 3,
+    "num_filters": 9,
+    "filter_sizes": "(2,3,4)"
+  },
+  "eval": {
+    "threshold": 0.5,
+    "dir": "eval_dir",
+    "batch_size": 1024,
+    "is_flat": false,
+    "top_k": 2,
+    "model_dir": "checkpoint_dir_piRNA/TextRNN_best"
+  },
+   "PositionalCNN": {
+     "kernel_size": 3
+  },
+  "log": {
+    "logger_file": "log_test_piRNA_hierar",
+    "log_level": "warn"
+  }
+}
