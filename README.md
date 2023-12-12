@@ -84,18 +84,13 @@ The training info will be outputted in standard output and log.logger\_file.
 
 ### TextRNN
 
-* **hidden\_dimension （隐藏层维度）**: dimension of hidden layer.
-* **rnn\_type （RNN类型（简单RNN,长短时记忆网络LSTM,门控循环单元GRU））**: Candidates: "RNN", "LSTM", "GRU".
-* **num\_layers （层数）**: number of layers.
-* **doc\_embedding\_type （文本嵌入类型）**: Candidates: "AVG", "Attention", "LastHidden".
-* **attention\_dimension （注意力维度）**: dimension of self-attention.
-* **bidirectional （是否使用双向RNN）**: Boolean, use Bi-RNNs.
+* **hidden\_dimension**: dimension of hidden layer.
+* **rnn\_type**: Candidates: "RNN", "LSTM", "GRU".
+* **num\_layers**: number of layers.
+* **doc\_embedding\_type**: Candidates: "AVG", "Attention", "LastHidden".
+* **attention\_dimension**: dimension of self-attention.
+* **bidirectional**: Boolean, use Bi-RNNs.
 
-
-
-### PositionalCNN
-
-* **kernel_size**: filter size for CNN.
 
 
 
