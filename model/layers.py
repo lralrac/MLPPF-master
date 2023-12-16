@@ -5,7 +5,11 @@ from model.model_util import init_tensor
 import torch
 
 class SumAttention(torch.nn.Module):
+    """
+    Reference: Hierarchical Attention Networks for Document Classification
+    """
     def __init__(self, input_dimension, attention_dimension, device, dropout=0):
+        # 调用了父类(torch.nn.Module)的构造函数，确保正确地初始化模块
         super(SumAttention, self).__init__()
 
         self.attention_matrix = \

@@ -3,6 +3,7 @@
 
 import torch
 import torch.nn as nn
+
 from util import Type
 
 
@@ -35,6 +36,11 @@ class ActivationType(Type):
 
 
 class FocalLoss(nn.Module):
+    """Softmax focal loss
+    references: Focal Loss for Dense Object Detection
+                https://github.com/Hsuxu/FocalLoss-PyTorch
+    """
+
     def __init__(self, label_size, activation_type=ActivationType.SOFTMAX,
                  gamma=2.0, alpha=0.25, epsilon=1.e-9):
         super(FocalLoss, self).__init__()

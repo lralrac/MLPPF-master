@@ -32,7 +32,7 @@ class Position_wise_Feed_Forward(nn.Module):
         out = F.relu(out)
         out = self.fc2(out)
         out = self.dropout(out)
-        out = out + x
+        out = out + x  # 残差连接
         out = self.layer_norm(out)
         return out
 
@@ -112,6 +112,10 @@ class Transformer(Classifier):
             for _ in range(config.Transformer.num_encoder)])
         self.linear1 = torch.nn.Linear(hidden_size, hidden_size//2)
         self.linear2 = torch.nn.Linear(hidden_size//2, len(dataset.label_map))
+
+        """
+        一个Dropout层，用于在训练过程中对全连接层的输出进行随机失活，以防止模型过拟合。
+        """
         self.dropout = torch.nn.Dropout(p=config.train.hidden_layer_dropout)
 
     def update_lr(self, optimizer, epoch):

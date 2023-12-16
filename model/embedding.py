@@ -65,7 +65,7 @@ class Embedding(torch.nn.Module):
         else:
             self.embedding = torch.nn.EmbeddingBag(
                 len(dict_map), embedding_dim, mode=mode)
-        #     Randomly initialize k-mer embeddings
+        #     随机初始化
         embedding_lookup_table = init_tensor(
             tensor=torch.empty(len(dict_map), embedding_dim),
             init_type=init_type, low=low, high=high, mean=mean, std=std,

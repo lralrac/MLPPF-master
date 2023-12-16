@@ -3248,31 +3248,3 @@ Loss is: 0.241330.
 2023-12-15 22:54:12 : WARNING  Total dict size of doc_token is 583
 2023-12-15 22:54:12 : WARNING  Size of pretrained doc_token embedding is 256
 2023-12-15 22:54:12 : WARNING  Size of randomly initialize doc_token embedding is 327
-2023-12-16 19:58:11 : WARNING  Load doc_token embedding from ./pre-train-embeddings/embedding_char2vec_k_4_d_64.csv
-2023-12-16 19:58:11 : WARNING  Total dict size of doc_token is 583
-2023-12-16 19:58:11 : WARNING  Size of pretrained doc_token embedding is 256
-2023-12-16 19:58:11 : WARNING  Size of randomly initialize doc_token embedding is 327
-2023-12-16 19:58:41 : WARNING  Train performance at epoch 1 is precision: 0.792763, recall: 0.713621, fscore: 0.751113, macro-fscore: 0.442202, right: 1687, predict: 2128, standard: 2364.
-Loss is: 0.598870.
-2023-12-16 19:58:50 : WARNING  Validate performance at epoch 1 is precision: 0.827004, recall: 0.753846, fscore: 0.788732, macro-fscore: 0.452656, right: 196, predict: 237, standard: 260.
-Loss is: 0.586324.
-2023-12-16 19:58:59 : WARNING  test performance at epoch 1 is precision: 0.787072, recall: 0.718750, fscore: 0.751361, macro-fscore: 0.440426, right: 207, predict: 263, standard: 288.
-Loss is: 0.606283.
-2023-12-16 19:59:27 : WARNING  Train performance at epoch 2 is precision: 0.816138, recall: 0.859983, fscore: 0.837487, macro-fscore: 0.810842, right: 2033, predict: 2491, standard: 2364.
-Loss is: 0.429579.
-2023-12-16 19:59:36 : WARNING  Validate performance at epoch 2 is precision: 0.838235, recall: 0.876923, fscore: 0.857143, macro-fscore: 0.809214, right: 228, predict: 272, standard: 260.
-Loss is: 0.406132.
-2023-12-16 19:59:45 : WARNING  test performance at epoch 2 is precision: 0.813953, recall: 0.850694, fscore: 0.831919, macro-fscore: 0.810461, right: 245, predict: 301, standard: 288.
-Loss is: 0.420899.
-2023-12-16 20:00:14 : WARNING  Train performance at epoch 3 is precision: 0.869389, recall: 0.909475, fscore: 0.888981, macro-fscore: 0.876507, right: 2150, predict: 2473, standard: 2364.
-Loss is: 0.379453.
-2023-12-16 20:00:23 : WARNING  Validate performance at epoch 3 is precision: 0.865942, recall: 0.919231, fscore: 0.891791, macro-fscore: 0.878333, right: 239, predict: 276, standard: 260.
-Loss is: 0.381868.
-2023-12-16 20:00:32 : WARNING  test performance at epoch 3 is precision: 0.862416, recall: 0.892361, fscore: 0.877133, macro-fscore: 0.856342, right: 257, predict: 298, standard: 288.
-Loss is: 0.388262.
-2023-12-16 20:01:01 : WARNING  Train performance at epoch 4 is precision: 0.902868, recall: 0.825719, fscore: 0.862572, macro-fscore: 0.868520, right: 1952, predict: 2162, standard: 2364.
-Loss is: 0.362698.
-2023-12-16 20:01:10 : WARNING  Validate performance at epoch 4 is precision: 0.887500, recall: 0.819231, fscore: 0.852000, macro-fscore: 0.844588, right: 213, predict: 240, standard: 260.
-Loss is: 0.368715.
-2023-12-16 20:01:19 : WARNING  test performance at epoch 4 is precision: 0.884170, recall: 0.795139, fscore: 0.837294, macro-fscore: 0.837174, right: 229, predict: 259, standard: 288.
-Loss is: 0.375638.

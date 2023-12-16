@@ -78,8 +78,8 @@ def show_sum_ROC():
     plt.ylabel('True Positive Rate')
     plt.title('ROC Curve')
     plt.legend(loc="lower right")
-    # save_path = './picture/method_ROC.png'
-    # plt.savefig(save_path, dpi=300)
+    save_path = './picture/method_ROC.png'
+    plt.savefig(save_path, dpi=300)
 
     plt.show()
 
@@ -103,8 +103,8 @@ def show_sum_PR():
     plt.ylabel('Precision')
     plt.title('PR Curve')
     plt.legend(loc="lower left")
-    # save_path = './picture/method_PR.png'
-    # plt.savefig(save_path, dpi=300)
+    save_path = './picture/method_PR.png'
+    plt.savefig(save_path, dpi=300)
     plt.show()
 
 def loda_ROC():
@@ -139,8 +139,8 @@ def loda_ROC():
 
 def change(x):
     for i in range(len(x)):
-        x[i] = x[i].strip()
-        x[i] = x[i].strip("[]")
+        x[i] = x[i].strip()  # 去除后面的换行元素
+        x[i] = x[i].strip("[]")  # 去除列表的[]符号
         x[i] = x[i].split(",")
         x[i] = list(map(float, x[i]))
 

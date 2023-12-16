@@ -1,12 +1,27 @@
 #!/usr/bin/env python
 #coding:utf-8
+"""
+Tencent is pleased to support the open source community by making NeuralClassifier available.
+Copyright (C) 2019 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance
+with the License. You may obtain a copy of the License at
+http://opensource.org/licenses/MIT
+Unless required by applicable law or agreed to in writing, software distributed under the License
+is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+or implied. See the License for thespecific language governing permissions and limitations under
+the License.
+"""
+
 # Provide function that calculate the precision, recall, F1-score
+#   and output confusion_matrix.
+
 
 import json
 import os
 import sklearn.metrics as sk
 import numpy as np
 from precision_test import take_values
+
 from dataset_preprocessing.classification_dataset import ClassificationDataset as cDataset
 
 
@@ -180,6 +195,7 @@ class ClassificationEvaluator(object):
                     confusion_matrix[label_name][label_name_other] = 0
             return confusion_matrix
 
+        # 添加calculate_ROC_epoch方法，计算每个epoch中AUC和AUPR
         def calculate_ROC_epoch(actual, pred_b):
             fpr = dict()
             tpr = dict()
@@ -187,6 +203,8 @@ class ClassificationEvaluator(object):
             pr_auc = dict()
             precision = dict()
             recall = dict()
+
+            # 微平均
             fpr["micro"], tpr["micro"], _ = sk.roc_curve(actual.ravel(), pred_b.ravel())
             roc_auc["micro"] = sk.auc(fpr["micro"], tpr["micro"])
             precision["micro"], recall["micro"], _ = sk.precision_recall_curve(actual.ravel(), pred_b.ravel())
@@ -243,6 +261,7 @@ class ClassificationEvaluator(object):
         right_category_count_list = []
         predict_category_count_list = []
         standard_category_count_list = []
+        # 添加预测标签predict_label_idss
         predict_label_idss = []
         for i in range(depth + 1):
             confusion_matrix_list.append(
@@ -256,6 +275,7 @@ class ClassificationEvaluator(object):
 
         line_count = 0
         debug_file = open("probs.txt", "w", encoding=cDataset.CHARSET)
+        # 将预测概率进行保存，并生成最后的标签
         for predict in predicts:
             if is_prob:
                 prob_np = np.array(predict, dtype=np.float32)
@@ -263,15 +283,19 @@ class ClassificationEvaluator(object):
                     predict_label_ids = [prob_np.argmax()]
                 else:
                     predict_label_ids = []
+                    # 获取预测概率降序排序，得到标签索引的排序
                     predict_label_idx = np.argsort(-prob_np)
                     top_k=2
                     for j in range(0, top_k):
+                        # 当概率大于某个阈值 threshold，把此时的标签索引加入到predict_label_ids(多标签分类)
                         if prob_np[predict_label_idx[j]] > threshold:
                             predict_label_ids.append(predict_label_idx[j])
+                            # print("输出predict_label_ids:",predict_label_ids)
 
                 predict_label_idss.append(predict_label_ids)
                 predict_label_name = [id_to_label_maps[0][predict_label_id] \
                     for predict_label_id in predict_label_ids]
+                # print("输出predict_label_name:",predict_label_name)
                 debug_file.write(json.dumps(prob_np.tolist()))
                 debug_file.write("\n")
             else:
@@ -332,13 +356,17 @@ class ClassificationEvaluator(object):
             line_count += 1
         debug_file.close()
         y_test, predictions = [], []
+        # print("---------------------------------输出真实标签：----------------------------------", standard_label_ids)
+        # print("---------------------------------输出预测概率：-----------------------------------", predicts)
         for i, j in zip(standard_label_ids, predicts):
             y_test.append(i)
             predictions.append(j)
         pred, actual = take_values(predictions, y_test, 0.5, 2)
         actual = np.array(actual)
         pred_b = np.array(predictions)
+        # 计算train、validate和test的AUC值和AUPR
         AUC_epoch,AUPR_epoch = calculate_ROC_epoch(actual, pred_b)
+        # print("----------------------------输出AUC_epoch,AUPR_epoch值---------------------------:",AUC_epoch,AUPR_epoch)
         precision_list = []
         recall_list = []
         fscore_list = []
@@ -368,8 +396,6 @@ class ClassificationEvaluator(object):
                 confusion_matrix_list, precision_list, recall_list, fscore_list,
                 right_category_count_list, predict_category_count_list,
                 standard_category_count_list)
-        # print("输出precision_list:",precision_list)
-        # print("输出recall_list:",recall_list)
         return (confusion_matrix_list, precision_list, recall_list, fscore_list,
                 right_category_count_list, predict_category_count_list,
                 standard_category_count_list,AUC_epoch,AUPR_epoch)

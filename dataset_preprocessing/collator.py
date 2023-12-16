@@ -101,7 +101,7 @@ class ClassificationCollator(Collator):
 
 
         for _, value in enumerate(batch):
-            # 输出doc_token----------------------- [180, 70, 40, 47, 27, 35, 5, 4, 3, 6, 5, 4, 3, 6, 5, 4, 3, 14, 15, 21, 4, 90, 110, 94, 65, 136, 128, 157, 210]
+            # doc_token----------------------- [180, 70, 40, 47, 27, 35, 5, 4, 3, 6, 5, 4, 3, 6, 5, 4, 3, 14, 15, 21, 4, 90, 110, 94, 65, 136, 128, 157, 210]
             doc_token_max_len = max(doc_token_max_len,
                                     len(value[cDataset.DOC_TOKEN]))
             doc_char_max_len = max(doc_char_max_len,

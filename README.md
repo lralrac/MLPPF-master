@@ -4,7 +4,7 @@
 
 * Python 3
 * PyTorch 0.4+
-* Numpy 1.19.5+
+* Numpy 1.14.3+
 
 ## Usage
 
@@ -12,38 +12,24 @@
 
     python train.py conf/train.json
 
-All parameters are stored in conf/train.json.
-The training info will be outputted in standard output and log.logger_file(**log_test_piRNA_hierar**).
+
+The training info will be outputted in standard output and log.logger\_file.
 
 
 ## Input Data Format
-    The data example:
-    id,name,seq,mRNA,lncRNA
-    1,piR-mmu-518742,TGAGTTCAAGGCCAGCATGGTCTACATAGA,1,0
-    2,piR-mmu-311911,AAGGTCAGTTTCAGCTATACAAGGATTTCA,1,0
-    3,piR-mmu-188768,TTACAGATAAGAGATTTTTAATTTGGTGGA,1,0
-    ...
-  "id" represents the number.
-  "name" represents the piRNA name.
-  "seq" represents piRNA sequence.
-  An mRNA value of 0 indicates that the piRNA does not target the mRNA, and a value of 1 indicates that the piRNA targets the mRNA.
-  A lncRNA value of 0 indicates that piRNA does not target lncRNA, and a value of 1 indicates that piRNA targets lncRNA.
 
     JSON example:
     {
-        "doc_label": ["mRNA"], 
-        "doc_token": ["TAAA", "AAAA", "AAAC", "AACA", "ACAA", "CAAG", "AAGT", "AGTA", "GTAC", "TACT", "ACTT", "CTTC", "TTCT", "TCTA", "CTAA", "TAAG", "AAGT", "AGTA", "GTAC", "TACT", "ACTA", "CTAG", "TAGA", "AGAC", "GACA", "ACAG", "CAGC", "AGCA"]
-
+        "doc_label": ["mRNA", "lncRNA"],
+        "doc_token": ["AAAT", "AATC", "ATCG", "TCGG"],
     }
-    python dataset_preprocessing/data_preprocessor.py
-
+    python dataset_preprocessing/data_preprocessor.py 
    This script convert the data into desired json format using 10-fold cross validation 
-
-### Training & Evaluation
+## Training & Evaluation
 
     python train.py conf/train.json
     
-### Detail configurations and explanations
+## Detail configurations and explanations
 
 ## Feature
 
@@ -63,9 +49,9 @@ The training info will be outputted in standard output and log.logger_file(**log
 * **num\_epochs**: number of epochs.
 * **num\_epochs\_static\_embedding**: number of epochs that input embedding does not update.
 * **decay\_rate**: Rate of decay for learning rate.
-* **loss\_type**: Candidates: "SigmodFocalCrossEntropy", "BCEWithLogitsLoss".
+* **loss\_type**: Candidates: , "SigmodFocalCrossEntropy", "BCEWithLogitsLoss".
 * **hidden\_layer\_dropout**: dropout of hidden layer.
-* **visible\_device\_list**:GPU/CPU list to use.
+* **visible\_device\_list**:[README.md](README.md) GPU list to use.
 
 
 ## Embedding
@@ -90,42 +76,26 @@ The training info will be outputted in standard output and log.logger_file(**log
 
 * **threshold**: float trunc threshold for predict probabilities.
 * **batch\_size**: batch size of evaluation.
-* **model\_dir**: the directory where the trained model checkpoint or weights are stored.
-
-
 ## Log
 
-* **logger\_file**: "log_test_piRNA_hierar".
+* **logger\_file**: log file path.
 * **log\_level**: Candidates: "debug", "info", "warn", "error".
 
 
 ### TextRNN
 
-* **hidden\_dimension**: dimension of hidden layer.
-* **rnn\_type**: Candidates: "RNN", "LSTM", "GRU".
-* **num\_layers**: number of layers.
-* **doc\_embedding\_type**: Candidates: "AVG", "Attention", "LastHidden".
-* **attention\_dimension**: dimension of self-attention.
-* **bidirectional**: "False" represents one-way, "true" represents bidirectional.
-
-
-### Transformer
-* **dim\_model**: the representation dimension of the model.
-* **hidden**: dimension of hidden layer.
-* **num\_head**: the number of heads in the attention mechanism,used to focus on different positions in different representation subspaces.
-* **dropout**: dropout rate
-* **num\_encoder**: the number of encoder
-
-### Textcnn
-* **kernel\_size**: the size of the convolutional kernel.
-* **num\_filters**: the number of convolutional filters.
-* **filter\_sizes**: the different sizes of convolutional kernels.
+* **hidden\_dimension （隐藏层维度）**: dimension of hidden layer.
+* **rnn\_type （RNN类型（简单RNN,长短时记忆网络LSTM,门控循环单元GRU））**: Candidates: "RNN", "LSTM", "GRU".
+* **num\_layers （层数）**: number of layers.
+* **doc\_embedding\_type （文本嵌入类型）**: Candidates: "AVG", "Attention", "LastHidden".
+* **attention\_dimension （注意力维度）**: dimension of self-attention.
+* **bidirectional （是否使用双向RNN）**: Boolean, use Bi-RNNs.
 
 
 
+### PositionalCNN
 
-
-
+* **kernel_size**: filter size for CNN.
 
 
 

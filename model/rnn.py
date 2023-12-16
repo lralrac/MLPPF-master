@@ -2,7 +2,10 @@
 # coding:utf-8
 
 import torch
+
 from util import Type
+
+
 class RNNType(Type):
     RNN = 'RNN'
     LSTM = 'LSTM'
@@ -26,7 +29,7 @@ class RNN(torch.nn.Module):
         self.num_layers = num_layers
         self.batch_first = batch_first
         self.bidirectional = bidirectional
-        # RNN types include LSTM, GRU, and RNN
+        # RNN类型存在LASTM、GRU、RNN
         if rnn_type == RNNType.LSTM:
             self.rnn = torch.nn.LSTM(
                 input_size, hidden_size, num_layers=num_layers, bias=bias,

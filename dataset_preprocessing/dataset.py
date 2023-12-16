@@ -1,6 +1,16 @@
 #!/usr/bin/env python
 #coding:utf-8
-
+"""
+Tencent is pleased to support the open source community by making NeuralClassifier available.
+Copyright (C) 2019 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance
+with the License. You may obtain a copy of the License at
+http://opensource.org/licenses/MIT
+Unless required by applicable law or agreed to in writing, software distributed under the License
+is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+or implied. See the License for thespecific language governing permissions and limitations under
+the License.
+"""
 
 import json
 import os
@@ -60,24 +70,28 @@ class DatasetBase(torch.utils.data.dataset.Dataset):
         self.sample_size = 0
         self.model_mode = mode
 
-        # This can be used to resume reading from the last position of each file if the script needs to be interrupted and restarted
+        # 如果需要中断并重新启动脚本，这可以用于从每个文件的最后位置恢复读取
         self.files = json_files
+        # print("dataset.py里面的json_files内容：",json_files)
         for i, json_file in enumerate(json_files):
             with open(json_file) as fin:
                 self.sample_index.append([i, 0])
                 while True:
-                    # Read a line from the currently open JSON file and store it in the variable json_str
+                    # 从当前打开的JSON文件中读取一行，并将其存储在变量json_str中
                     json_str = fin.readline()
-                    # Output the contents of each line of the file： {"doc_label": ["mRNA"], "doc_token": ["TAGG", "AGGA", "GGAT", "GATT", "ATTA", "TTAA", "TAAA", "AAAG", "AAGG", "AGGT", "GGTA", "GTAT", "TATA", "ATAC", "TACA", "ACAT", "CATC", "ATCA", "TCAC", "CACT", "ACTG", "CTGC", "TGCT", "GCTG", "CTGC"]}
-                    # If json_str is empty, end of file reached
+                    # print("输出文件每行的内容：",json_str)
+                    # 输出文件每行的内容： {"doc_label": ["mRNA"], "doc_token": ["TAGG", "AGGA", "GGAT", "GATT", "ATTA", "TTAA", "TAAA", "AAAG", "AAGG", "AGGT", "GGTA", "GTAT", "TATA", "ATAC", "TACA", "ACAT", "CATC", "ATCA", "TCAC", "CACT", "ACTG", "CTGC", "TGCT", "GCTG", "CTGC"]}
+                    # 如果json_str为空，则达到文件结尾
                     if not json_str:
+                        # 如果到达文件结尾，将从列表sample_index移除最后一个元素
                         self.sample_index.pop()
                         break
                     self.sample_size += 1
-                    self.sample_index.append([i, fin.tell()])# Get current file location
-
+                    self.sample_index.append([i, fin.tell()])# 获取当前文件位置
+        # print("输出文件所有内容存储的sample_index:",self.sample_index)
 
         def _insert_vocab(files, _mode=InsertVocabMode.ALL):
+            # print("输出files:",files)
             for _i, _json_file in enumerate(files):
                 with open(_json_file) as _fin:
                     for _json_str in _fin:
@@ -95,15 +109,25 @@ class DatasetBase(torch.utils.data.dataset.Dataset):
             # If generate_dict_using_json_files is true, then all vocab in train
             # will be used, else only part vocab will be used. e.g. label
             vocab_json_files = config.data.train_json_files
+            # print("输出vocab_json_files文件：",vocab_json_files)
+            # 输出vocab_json_files文件： ['MiRNA_dataset/4\\0\\train.json']
             mode = InsertVocabMode.LABEL
+            # print("输出mode模式:",mode)
+            # 输出mode模式: label
             if self.config.data.generate_dict_using_json_files:
                 mode = InsertVocabMode.ALL
+                # print("输出InsertVocabMode.ALL：",mode)_insert_vocab
+                # 输出InsertVocabMode.ALL： all
                 self.logger.info("Use dataset_preprocessing to generate dict.")
             _insert_vocab(vocab_json_files, mode)
 
             if self.config.data.generate_dict_using_all_json_files:
                 vocab_json_files += self.config.data.validate_json_files + \
                                     self.config.data.test_json_files
+                # print("输出vocab_json_files：",vocab_json_files)
+                # 输出vocab_json_files： ['MiRNA_dataset/4\\0\\train.json', 'MiRNA_dataset/4\\0\\valid.json', 'MiRNA_dataset/4\\0\\test.json']
+                # print("输出InsertVocabMode.OTHER：",InsertVocabMode.OTHER)
+                # 输出InsertVocabMode.OTHER： other
                 _insert_vocab(vocab_json_files, InsertVocabMode.OTHER)
 
             if self.config.data.generate_dict_using_pretrained_embedding:
@@ -140,17 +164,30 @@ class DatasetBase(torch.utils.data.dataset.Dataset):
         Args:
             dict_name: Dict name, if None save all dict. Default None.
         """
+        # print("输出_save_dict中dict_name的内容：",dict_name)
+        # 输出_save_dict中dict_name的内容： None
+        # 输出_save_dict中dict_name的内容： doc_label
+        # 输出_save_dict中dict_name的内容： doc_token
+        # 输出_save_dict中dict_name的内容： doc_char
         if dict_name is None:
+            # 如果不存在dict_miRNA,就新建dict_miRNA文件夹进行存放
             if not os.path.exists(self.config.data.dict_dir):
                 os.makedirs(self.config.data.dict_dir)
             for name in self.dict_names:
                 self._save_dict(name)
         else:
             dict_idx = self.dict_names.index(dict_name)
+            # print("输出_save_dict中dict_id的内容：",dict_idx)
+            # 打开文件夹
             dict_file = open(self.dict_files[dict_idx], "w")
+            # print("输出_save_dict中dict_file的内容：",dict_file)
+            #获取与词汇表相关联的一个字典，用于将词汇的编号映射到词汇本身
             id_to_vocab_dict_map = self.id_to_vocab_dict_list[dict_idx]
             index = 0
             for vocab, count in self.count_list[dict_idx]:
+                # print(vocab,count)
+                # mRNA  3777
+                # lncRNA 1499
                 id_to_vocab_dict_map[index] = vocab
                 index += 1
                 dict_file.write("%s\t%d\n" % (vocab, count))
@@ -163,6 +200,11 @@ class DatasetBase(torch.utils.data.dataset.Dataset):
         Returns:
             dict.
         """
+        # print("在_load_dict函数中dict_name的内容:",dict_name)
+        # 在_load_dict函数中dict的内容: None
+        # 在_load_dict函数中dict_name的内容: doc_label
+        # 在_load_dict函数中dict_name的内容: doc_token
+        # 在_load_dict函数中dict_name的内容: doc_char
         if dict_name is None:
             for name in self.dict_names:
                 self._load_dict(name)
@@ -192,8 +234,9 @@ class DatasetBase(torch.utils.data.dataset.Dataset):
                               pretrained_file=None, min_count=0):
         """Use pretrained embedding to generate dict
         """
-        # print("pretrained_file:",pretrained_file)
+        # print("输出pretrained_file:",pretrained_file)
         if dict_name is None:
+            # 第一次的时候进入if
             # print("输出pretrained_dict_names：",self.pretrained_dict_names)
             # print("输出pretrained_dict_files：",self.pretrained_dict_files)
             # print("输出pretrained_min_count：",self.pretrained_min_count)
@@ -207,22 +250,34 @@ class DatasetBase(torch.utils.data.dataset.Dataset):
                     self.pretrained_min_count[i])
 
         else:
+            # 第二次的时候进入else
+            # 第二次时，pretrained_file为'pre-train-embeddings/node_dict.csv'
             if pretrained_file is None or pretrained_file == "":
                 return
-            # dict_names: ['doc_label', 'doc_token', 'doc_char']
+            # print("输出dict_names:",self.dict_names)
+            # 输出dict_names: ['doc_label', 'doc_token', 'doc_char']
             index = self.dict_names.index(dict_name)
+            # print("输出index:",index) 1
             # &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
             dict_map = self.dicts[index]
+            # print("输出原dict_map:",dict_map)
+            # print("输出原dict_map的长度：",len(dict_map))
+            # 输出dict_map: {'TAGG': 625, 'AGGA': 1481, 'GGAT': 1237, 'GATT': 1100, 'ATTA': 1124, 'TTAA': 893,
+            # print(os.getcwd())
             with open(pretrained_file) as fin:
                 for line in fin:
+                    # 读取pre-train-embedding文件夹下的node_dict.csv中的内容(data)
                     data = line.strip().split(' ')
-                    # data： ['AGCC', '-0.1377866566181183', '0.234967902302742', '0.4696999490261078',
+                    # print("请输出data的内容：",data)
+                    # 请输出data的内容： ['AGCC', '-0.1377866566181183', '0.234967902302742', '0.4696999490261078',
                     if len(data) == 2:
                         continue
+                    # 判断 预训练词向量中的token是否存在于dict_map
                     if data[0] not in dict_map:
                         dict_map[data[0]] = 0
                     dict_map[data[0]] += min_count + 1
-
+            # print("输出更新dict_map的内容：",dict_map)
+            # print("输出更新dict_map的长度：", len(dict_map))
 
     def _insert_vocab(self, json_obj, mode=InsertVocabMode.ALL):
         """Insert vocab to dict
@@ -231,19 +286,26 @@ class DatasetBase(torch.utils.data.dataset.Dataset):
 
     def _shrink_dict(self, dict_name=None):
         # dict_names: ['doc_label', 'doc_token', 'doc_char']
+        # print("在_shrink_dict精简词汇表函数中dict_name的对象：",dict_name)
+        # 首次当进入这个精简函数中dict_name为None,进入for循环对所有词汇表都进行精简
+        # 在_shrink_dict精简词汇表函数中dict_name的对象： doc_label
+        # 在_shrink_dict精简词汇表函数中dict_name的对象： doc_token
+        # 在_shrink_dict精简词汇表函数中dict_name的对象： doc_char
         if dict_name is None:
             for name in self.dict_names:
                 self._shrink_dict(name)
         else:
 
             dict_idx = self.dict_names.index(dict_name)
+            # self.dicts为总的词汇表
             self.count_list[dict_idx] = sorted(self.dicts[dict_idx].items(),
                                                key=lambda x: (x[1], x[0]),
                                                reverse=True)
             self.count_list[dict_idx] = \
                 [(k, v) for k, v in self.count_list[dict_idx] if
                  v >= self.min_count[dict_idx]][0:self.max_dict_size[dict_idx]]
-
+            # print("输出排序后的count_lsit：",self.count_list)
+    #         输出三个词汇表都排序后的count_lsit： [[('mRNA', 3777), ('lncRNA', 1499)], [('CAGA', 1893), ('ACAG', 1826), ('GACA', 1627), ('
     def _clear_dict(self):
         """Clear all dict
         """
@@ -258,7 +320,7 @@ class DatasetBase(torch.utils.data.dataset.Dataset):
         """Print dict info
         """
         # dict_names: ['doc_label', 'doc_token', 'doc_char']
-        # print("count_list：",count_list)
+        # print("count_list内容：",count_list)
         for i, dict_name in enumerate(self.dict_names):
 
             if count_list:
@@ -266,8 +328,9 @@ class DatasetBase(torch.utils.data.dataset.Dataset):
                     "Size of %s dict is %d" % (
                         dict_name, len(self.count_list[i])))
             else:
-                # len(self.dict[0]) represents the length of label in the vocabulary
-                # len(self.dict[1]) represents the length of token in the vocabulary
+                # len(self.dict[0])表示词汇表中label的长度
+                # len(self.dict[1])表示词汇表中token的长度
+                # len(self.dict[2])表示词汇表中char的长度
                 self.logger.info(
                     "Size of %s dict is %d" % (dict_name, len(self.dicts[i])))
 
