@@ -99,7 +99,7 @@ class TextRNN(Classifier):
             raise TypeError(
                 "Unsupported rnn init type: %s. Supported rnn type is: %s" % (
                     self.doc_embedding_type, DocEmbeddingType.str()))
-        # If you do not use the attention mechanism, comment out the if statement above. And the if statement in get_parameter_optimizer_dict is also commented out. Then execute the following code
+        # If you do not use the attention mechanism, comment out the if statement above. And the statement in get_parameter_optimizer_dict is also commented out. Then execute the following code
         # doc_embedding = torch.sum(output, dim=1)
 
 
