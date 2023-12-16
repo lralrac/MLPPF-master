@@ -37,7 +37,7 @@ class DatasetBase(torch.utils.data.dataset.Dataset):
     """
     CHARSET = "utf-8"
 
-    # 了解VOCAB_PADDING、VOCAB_UNKNOWN、VOCAB_PADDING_LEARNABLE
+    # VOCAB_PADDING、VOCAB_UNKNOWN、VOCAB_PADDING_LEARNABLE
     VOCAB_PADDING = 0  # Embedding is all zero and not learnable
     VOCAB_UNKNOWN = 1
     VOCAB_PADDING_LEARNABLE = 2  # Embedding is random initialized and learnable
@@ -194,12 +194,6 @@ class DatasetBase(torch.utils.data.dataset.Dataset):
         """
         # print("pretrained_file:",pretrained_file)
         if dict_name is None:
-            # print("输出pretrained_dict_names：",self.pretrained_dict_names)
-            # print("输出pretrained_dict_files：",self.pretrained_dict_files)
-            # print("输出pretrained_min_count：",self.pretrained_min_count)
-            # 输出pretrained_dict_names： ['doc_token']
-            # 输出pretrained_dict_files： ['pre-train-embeddings/node_dict.csv']
-            # 输出pretrained_min_count： [0]
             for i, _ in enumerate(self.pretrained_dict_names):
                 self._load_pretrained_dict(
                     self.pretrained_dict_names[i],
@@ -247,8 +241,6 @@ class DatasetBase(torch.utils.data.dataset.Dataset):
     def _clear_dict(self):
         """Clear all dict
         """
-        # self.dicts为总的词汇表
-        # 清空存储词汇表和相关映射的数据结构
         for dict_map in self.dicts:
             dict_map.clear()
         for id_to_vocab_dict in self.id_to_vocab_dict_list:
@@ -273,13 +265,9 @@ class DatasetBase(torch.utils.data.dataset.Dataset):
 
     def _insert_sequence_tokens(self, sequence_tokens, token_map,
                                  char_map):
-        # print("输出sequence_token的内容：",sequence_tokens)
         for token in sequence_tokens:
-            # print("在dataset.py里面输出token:",token)
             for char in token:
-                # print("遍历token中的字符:",char)
                 self._add_vocab_to_dict(char_map, char)
-            # print("输出char_map:",char_map)
             self._add_vocab_to_dict(token_map, token)
 
 
