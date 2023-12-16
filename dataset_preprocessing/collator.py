@@ -36,13 +36,12 @@ class ClassificationType(Type):
     def str(cls):
         return ",".join([cls.SINGLE_LABEL, cls.MULTI_LABEL])
 
-# 定义一个名为ClassificationCollator的类,继承自Collator(父类)
 class ClassificationCollator(Collator):
     def __init__(self, conf, label_size):
-        # 初始化ClassificationCollator类
-        # 接受两个参数:conf 和 label_size
+        # Initialize the ClassificationCollator class
+        # Accepts two parameters: conf and label_size
         super(ClassificationCollator, self).__init__(conf.device)
-        # 根据模型的不同设置最小序列长度 min_seq
+        # Set the minimum sequence length min_seq according to different models
         min_seq = 1
         if conf.model_name == "TextCNN":
             min_seq = conf.TextCNN.top_k_max_pooling
@@ -52,33 +51,28 @@ class ClassificationCollator(Collator):
             min_seq = conf.feature.max_token_len
         self.min_token_max_len = min_seq
         self.min_char_max_len = min_seq
-        # 用于表示分类任务的标签大小
+        # Label size used to represent classification tasks
         self.label_size = label_size
 
     def _get_multi_hot_label(self, doc_labels):
         """For multi-label classification
         Generate multi-hot for input labels
-        e.g. input: [[0,1], [2]]
-        表示在第一个位置和第二个位置都存在【0，1】
-             output: [[1,1,0], [0,0,1]]
+        e.g. input: [[0,1], [0],[1]]
+        [0,1] indicates that piRNA targets both mRNA and lncRNA, [0] indicates that piRNA only targets mRNA,
+             output: [[1,1], [0,1],[1,0]]
+        [1,1] indicates that the model predicts that piRNA targets both mRNA and lncRNA, [0,1] indicates that the model predicts that piRNA targets only lncRNA, and [1,0] indicates that the model predicts that piRNA targets only mRNA.
         """
         # print(doc_labels)
         batch_size = len(doc_labels)
-        # print("collator文件中batch_size大小:",batch_size)
         max_label_num = max([len(x) for x in doc_labels])
-        # print("输出max_label_num长度",max_label_num)
-        # 从原始文档标签列表中取出第一个标签，并将其添加到doc_labels_extend中。通过不断重复第一个标签，指导新列表的长度等于max_label_extend
-        # 初始化doc_labels_extend列表
+        # Initialize doc_labels_extend list
         doc_labels_extend = \
             [[doc_labels[i][0] for x in range(max_label_num)] for i in range(batch_size)]
-        # print("初始化doc_label_extend",doc_labels_extend)
         for i in range(0, batch_size):
             doc_labels_extend[i][0 : len(doc_labels[i])] = doc_labels[i]
-        # print("标签数量截断为原始文档标签列表中的实际标签数量",doc_labels_extend)
         y = torch.Tensor(doc_labels_extend).long()
-        # 创建一个全零的张量，作为初始的独热编码
+        # Create an all-zero tensor as an initial one-hot encoding
         y_onehot = torch.zeros(batch_size, self.label_size).scatter_(1, y, 1)
-        # print("输出y_onehot编码向量：",y_onehot)
         # print(y_onehot)
 
         return y_onehot
@@ -89,30 +83,24 @@ class ClassificationCollator(Collator):
 
     def __call__(self, batch):
         def _append_vocab(ori_vocabs, vocabs, max_len):
-            # 生成一个包含填充值的列表，用于填充到原始词汇列表后面
+            # Generates a list containing padding values for padding after the original vocabulary list
             padding = [cDataset.VOCAB_PADDING] * (max_len - len(ori_vocabs))
             vocabs.append(ori_vocabs + padding)
-        # 用于存储文档标签
+        # Used to store document tags
         doc_labels = []
-        # 用于存储文档的词汇、字符和字符在词汇中的表示
         doc_token = []
         doc_char = []
         doc_char_in_token = []
-        # 用于存储文档的词汇长度，字符长度和字符在词汇中的表示长度
         doc_token_len = []
         doc_char_len = []
         doc_char_in_token_len = []
-        # 用于记录批次中文档的最大词汇长度、字符长度以及字符在词汇中的表示的最大长度
+        # Used to record the maximum vocabulary length, character length, and the maximum length of the representation of characters in the vocabulary of documents in the batch
         doc_token_max_len = self.min_token_max_len
         doc_char_max_len = self.min_char_max_len
         doc_char_in_token_max_len = 0
 
 
-        # print("在collator.py中输出batch:",batch)
         for _, value in enumerate(batch):
-            # print("在collator.py中输出batch:",_,value)
-            # print("输出_:",_)
-            # print("输出doc_token-----------------------",value[cDataset.DOC_TOKEN])
             # 输出doc_token----------------------- [180, 70, 40, 47, 27, 35, 5, 4, 3, 6, 5, 4, 3, 6, 5, 4, 3, 14, 15, 21, 4, 90, 110, 94, 65, 136, 128, 157, 210]
             doc_token_max_len = max(doc_token_max_len,
                                     len(value[cDataset.DOC_TOKEN]))
@@ -121,19 +109,14 @@ class ClassificationCollator(Collator):
             for char_in_token in value[cDataset.DOC_CHAR_IN_TOKEN]:
                 doc_char_in_token_max_len = max(doc_char_in_token_max_len,
                                                 len(char_in_token))
-        # doc_token_max_len长度为30，doc_char_max_len为120，doc_char_in_token_max_len为4
-        # print("输出最大doc_token_max_len长度：",doc_token_max_len)
-        # print("输出最大doc_char_max_len长度：",doc_char_max_len)
-        # print("输出最大doc_char_in_token_max_len:",doc_char_in_token_max_len)
 
 
         for _, value in enumerate(batch):
             self._append_label(doc_labels, value)
-            #value[cDataset.DOC_TOKEN] 表示当前文档中的词汇列表
-            # _append_vocab 函数的作用是将原始词汇列表扩展到指定的最大长度 max_len，并将扩展后的词汇列表追加到目标词汇列表 vocabs
+            #value[cDataset.DOC_TOKEN] represents the vocabulary list in the current document
             _append_vocab(value[cDataset.DOC_TOKEN], doc_token,
                           doc_token_max_len)
-            # 用于记录当前文档的词汇列表的长度
+            # The length of the vocabulary list used to record the current document
             doc_token_len.append(len(value[cDataset.DOC_TOKEN]))
             _append_vocab(value[cDataset.DOC_CHAR], doc_char, doc_char_max_len)
             doc_char_len.append(len(value[cDataset.DOC_CHAR]))
@@ -151,16 +134,16 @@ class ClassificationCollator(Collator):
                 doc_char_in_token_len_tmp.append(0)
             doc_char_in_token_len.append(doc_char_in_token_len_tmp)
 
-        # print("输出doc_label:",doc_labels)
+        # print("doc_label:",doc_labels)
         tensor_doc_labels = self._get_multi_hot_label(doc_labels)
-        # print("输出tensor_doc_labels：",tensor_doc_labels)
+        # print("tensor_doc_labels：",tensor_doc_labels)
         doc_label_list = doc_labels
 
-        # print("输出doc_token:",doc_token)
-        # print("输出doc_token的长度:",len(doc_token))
-        # print("输出tensor_doc_token:",torch.tensor(doc_token))
-        # print("输出tensor_doc_token的形状:",torch.tensor(doc_token).shape)
-        # print("输出torch.tensor(doc_char：",torch.tensor(doc_char))
+        # print("doc_token:",doc_token)
+        # print("the length of doc_token:",len(doc_token))
+        # print("tensor_doc_token:",torch.tensor(doc_token))
+        # print("the shape of tensor_doc_token:",torch.tensor(doc_token).shape)
+        # print("torch.tensor(doc_char：",torch.tensor(doc_char))
         batch_map = {
             cDataset.DOC_LABEL: tensor_doc_labels,
             cDataset.DOC_LABEL_LIST: doc_label_list,
@@ -188,7 +171,7 @@ class ClassificationCollator(Collator):
             cDataset.DOC_CHAR_IN_TOKEN_MAX_LEN:
                 torch.tensor([doc_char_in_token_max_len], dtype=torch.float32)
         }
-        # print("______________________输出batch_map_______________________________",batch_map)
+        # print("______________________output the batch_map_______________________________",batch_map)
         return batch_map
 
 

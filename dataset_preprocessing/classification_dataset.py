@@ -1,16 +1,6 @@
 #!/usr/bin/env python
 #coding:utf-8
-"""
-Tencent is pleased to support the open source community by making NeuralClassifier available.
-Copyright (C) 2019 THL A29 Limited, a Tencent company. All rights reserved.
-Licensed under the MIT License (the "License"); you may not use this file except in compliance
-with the License. You may obtain a copy of the License at
-http://opensource.org/licenses/MIT
-Unless required by applicable law or agreed to in writing, software distributed under the License
-is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
-or implied. See the License for thespecific language governing permissions and limitations under
-the License.
-"""
+
 from dataset_preprocessing.dataset import DatasetBase
 from dataset_preprocessing.dataset import InsertVocabMode
 from util import ModeType
@@ -50,7 +40,7 @@ class ClassificationDataset(DatasetBase):
 
     def __init__(self, config, json_files, generate_dict=False,
                  mode=ModeType.EVAL):
-        # print("初始化中json_files文件：",json_files)
+
         super(ClassificationDataset, self).__init__(
             config, json_files, generate_dict=generate_dict, mode=mode)
 
@@ -67,8 +57,7 @@ class ClassificationDataset(DatasetBase):
             self.dict_files.append(
                 self.config.data.dict_dir + "/" + dict_name + ".dict")
         self.label_dict_file = self.dict_files[0]
-        # print("在classification_dataset.py中self.label_dict_file：",self.label_dict_file )
-        # 在classification_dataset.py中self.label_dict_file： dict_miRNA/doc_label.dict
+
 
         # By default keep all labels
         self.min_count = [0,
@@ -108,7 +97,7 @@ class ClassificationDataset(DatasetBase):
         self.id_to_vocab_dict_list = [
             self.id_to_label_map, self.id_to_token_map, self.id_to_char_map]
 
-        # 用于设置于预训练词向量相关的配置信息
+        # Used to set configuration information related to pretrained word vectors
         self.pretrained_dict_names = [self.DOC_TOKEN]
         # print(self.pretrained_dict_names)
         # ['doc_token']
@@ -116,7 +105,6 @@ class ClassificationDataset(DatasetBase):
             [self.config.feature.token_pretrained_file
              ]
         # print(self.pretrained_dict_files)
-        # ['pre-train-embeddings/node_dict.csv']
 
         # self.config.feature.min_token_count表示在加载或处理预训练词向量时，至少出现大于等于0次的词汇才会被保留或考虑
         self.pretrained_min_count = \
@@ -138,7 +126,6 @@ class ClassificationDataset(DatasetBase):
             doc_tokens = \
                 json_obj[self.DOC_TOKEN][0:self.config.feature.max_token_len]
 
-            # 调用dataset中的_insert_sequence_tokens函数
             self._insert_sequence_tokens(
                 doc_tokens, self.token_map, self.char_map,
                 )

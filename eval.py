@@ -1,16 +1,5 @@
 # !/usr/bin/env python
 # coding:utf-8
-"""
-Tencent is pleased to support the open source community by making NeuralClassifier available.
-Copyright (C) 2019 THL A29 Limited, a Tencent company. All rights reserved.
-Licensed under the MIT License (the "License"); you may not use this file except in compliance
-with the License. You may obtain a copy of the License at
-http://opensource.org/licenses/MIT
-Unless required by applicable law or agreed to in writing, software distributed under the License
-is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
-or implied. See the License for thespecific language governing permissions and limitations under
-the License.
-"""
 import sys
 import torch
 import sklearn
@@ -33,7 +22,6 @@ from evaluate.classification_evaluate import \
 
 
 from model.classification.textrnn import TextRNN
-
 from model.classification.transformer import Transformer
 from model.classification.textcnn import Textcnn
 
@@ -63,12 +51,11 @@ def kfold_eval(conf):
     collate_name = "FastTextCollator" if model_name == "FastText" \
         else "ClassificationCollator"
 
-    # 构建测试数据集
+    # Build test data set
     test_dataset = globals()[dataset_name](conf, conf.data.test_json_files)
-    # 创建一个数据加载器的collate_fn
+    # Create a data loader collate_fn
     collate_fn = globals()[collate_name](conf, len(test_dataset.label_map))
-    # 在测试阶段，一般不需要打乱数据，所以设置为 False
-    # num_workers=conf.data.num_worker: 这个参数指定了用于加载数据的并行工作进程的数量
+    # In the testing phase, there is generally no need to disrupt the data, so set it to False
     test_data_loader = DataLoader(
         test_dataset, batch_size=conf.eval.batch_size, shuffle=False,
         num_workers=conf.data.num_worker, collate_fn=collate_fn,
@@ -91,14 +78,28 @@ def kfold_eval(conf):
         # ============================ EVALUATION API ============================================================================================
     y_test, predictions = [], []
 
-
+    print ("standard_labels-------------------------:")
+    print(standard_labels)
+    print("predict_probs-------------------:")
+    print(predict_probs)
+    print("<-------------------------------------------------------------------------------------------------->")
     for i, j in zip(standard_labels, predict_probs):
             y_test.append(i)
             predictions.append(j)
+    print("y_test:")
 
+    print(y_test)
+    print("predictions:")
+    #print("qqqqqqqqq")
+    print(predictions)
 
     #print("<===========================================================================================================>")
     pred, actual = take_values(predictions, y_test , conf.eval.threshold, conf.eval.top_k )
+    print("pred:")
+    print(pred)
+    #print("qqqqqqqqq")
+    print("actual:")
+    print(actual)
 
     # print("</////////////////////////////////////////////////////////////////////////////////////////////////////////////>")
 
@@ -106,14 +107,15 @@ def kfold_eval(conf):
     actual=np.array(actual)
     pred=np.array(pred)
     pred_b = np.array(predictions)
+    # print("---------------------actual--------------------------:",actual)
+    # print("---------------------pred----------------------------:",pred_b)
 
     sum_pred_b = predictions
-
-    # actual表示真实标签，pred_b表示预测概率分数
+    #print(sum_actual)
+    #print(sum_pred_b)
     fpr, tpr,roc_auc,prprecision,prrecall,praverage_precision= built_ROC(actual,pred_b)
 
     precision_class,recall_class,f1_class,AUC_class,AUPR_class=class_Metric(actual,pred,pred_b)
-    # 需要将这个函数进行完善补充
 
     evaluation_measures={"Accuracy": accuracy(actual, pred) ,
                              "Precision": precision(actual, pred) ,

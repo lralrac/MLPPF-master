@@ -12,6 +12,7 @@ import util
 from config import Config
 from dataset_preprocessing.classification_dataset import ClassificationDataset
 from dataset_preprocessing.collator import ClassificationCollator
+from dataset_preprocessing.collator import FastTextCollator
 from dataset_preprocessing.collator import ClassificationType
 from evaluate.classification_evaluate import \
     ClassificationEvaluator as cEvaluator
@@ -28,8 +29,8 @@ from util import ModeType
 
 
 """
-用于获取训练、验证和测试数据的数据加载器(DataLoader)
-dataset_name指定数据集类型，collate_name指定数据处理函数类型，conf是一个配置对象
+DataLoader for obtaining training, validation and test data
+dataset_name specifies the data set type, collate_name specifies the data processing function type, conf is a configuration object
 """
 def get_data_loader(dataset_name, collate_name, conf):  #例 ClassificationDataset,ClassificationCollator,conf
     """Get data loader: Train, Validate, Test
@@ -39,9 +40,9 @@ def get_data_loader(dataset_name, collate_name, conf):  #例 ClassificationDatas
         conf, conf.data.train_json_files, generate_dict=True)#generate_dict是一个布尔值，表示是否需要生成词典,这个类会读取训练数据集文件，并将其转换为模型可以处理的格式
 
     """
-    这个类会将每个样本转换为一个字典，并将这些字典打包成一个批次(batch)。
-    在这个过程中，它会将样本的文本数据转换为数字化的表示，并将标签转换为One-Hot编码的形式。最后，它会返回一个包含批次数据的列表。
-    例ClassificationCollator(conf,label_size)label_size是标签的数量（2）
+    This class will convert each sample into a dictionary and pack these dictionaries into a batch.
+     During this process, it converts the text data of the sample into a digital representation and converts the labels into One-Hot encoded form. Finally, it returns a list containing the batch data.
+     Example ClassificationCollator(conf,label_size) label_size is the number of labels (2)
     """
     collate_fn = globals()[collate_name](conf, len(train_dataset.label_map))
 
@@ -74,20 +75,17 @@ def get_classification_model(model_name, dataset, conf):
     return model
 
 """
-ClassificationTrainer的类，用于训练和评估文本分类模型。该类包含以下方法和属性：
-__init__(self, label_map, logger, evaluator, conf, loss_fn)：类的构造函数，
-用于初始化各种属性和参数，例如标签映射、日志记录器、评估器、配置和损失函数等。
-train(self, data_loader, model, optimizer, stage, epoch)：用于训练模型的方法。
-它接受一个数据加载器、模型、优化器、训练阶段和当前轮数作为输入，并返回训练的结果。
-eval(self, data_loader, model, optimizer, stage, epoch)：用于评估模型性能的方法。
-它接受一个数据加载器、模型、优化器、评估阶段和当前轮数作为输入，并返回评估的结果。
-run(self, data_loader, model, optimizer, stage, epoch, mode=ModeType.EVAL)：用于运行训练或评估的方法。
-它接受一个数据加载器、模型、优化器、阶段、当前轮数和模式（默认为评估模式）作为输入，并返回结果。
-label_map：标签映射字典，用于将标签转换为数字化的表示。
-logger：用于记录日志的对象。
-evaluator：用于评估模型性能的对象。
-conf：包含各种训练参数和配置的对象。
-loss_fn：损失函数对象，用于计算模型的损失。
+Class for ClassificationTrainer, used to train and evaluate text classification models. This class contains the following methods and properties:
+__init__(self, label_map, logger, evaluator, conf, loss_fn): Constructor of the class,
+Used to initialize various properties and parameters such as label maps, loggers, evaluators, configurations, loss functions, etc.
+train(self, data_loader, model, optimizer, stage, epoch): Method used to train the model. It accepts a data loader, model, optimizer, training phase, and current epoch number as input, and returns the results of the training.
+eval(self, data_loader, model, optimizer, stage, epoch): Method used to evaluate model performance. It accepts a data loader, model, optimizer, evaluation stage, and current round number as input, and returns the results of the evaluation.
+run(self, data_loader, model, optimizer, stage, epoch, mode=ModeType.EVAL): Method used to run training or evaluation. It accepts a data loader, model, optimizer, stage, current round number, and mode (defaults to evaluation mode) as input, and returns the results.
+label_map: Label mapping dictionary, used to convert labels into digital representations.
+logger: object used for logging.
+evaluator: Object used to evaluate model performance.
+conf: Object containing various training parameters and configurations.
+loss_fn: Loss function object, used to calculate the loss of the model.
 """
 class ClassificationTrainer(object):
     def __init__(self, label_map, logger, evaluator, conf, loss_fn):
@@ -101,8 +99,8 @@ class ClassificationTrainer(object):
         #         self.conf.task_info.hierar_taxonomy, label_map)
 
     def train(self, data_loader, model, optimizer, stage, epoch):
-        model.update_lr(optimizer, epoch)#更新学习率
-        model.train()#用于将模型设置为训练模式的方法
+        model.update_lr(optimizer, epoch)# Update learning rate
+        model.train()# Method used to set the model into training mode
         return self.run(data_loader, model, optimizer, stage, epoch,
                         ModeType.TRAIN)
 
@@ -112,71 +110,54 @@ class ClassificationTrainer(object):
 
     def run(self, data_loader, model, optimizer, stage,
             epoch, mode=ModeType.EVAL):
-        # 表示是多标签分类
         is_multi = True
         predict_probs = []
         standard_labels = []
         num_batch = data_loader.__len__()
         total_loss = 0.
-
         for batch in data_loader:
-            # logits用于存储神经网络模型的原始预测结果
-            # model表示神经网络模型的实例
-            # batch表示输入数据的批处理
+            # Logits are used to store the original prediction results of the neural network model
+            # batch represents batch processing of input data
             logits = model(batch)
-            # print("在train.py输出logits:",logits)
-            # print(make_dot(logits, params=dict(model.named_parameters())))
-            # hierarchical classification
-            # loss用于存储模型的损失值的对象
-            # 在深度学习中,损失函数(loss function)用于衡量模型预测与真实目标之间的差距,训练模型的目的通常是最小化损失,使得模型尽可能地接近
-            # 使用损失函数"self.loss_fn"来计算模型的预测结果"logits",这个损失值通常用于反向传播(backpropagation)以更新模型的权重和参数
             loss = self.loss_fn(
                     logits,
                     batch[ClassificationDataset.DOC_LABEL].to(self.conf.device),
                     False,
                     is_multi)
-            #检查当前的运行模型是否为TRAIN(训练模式)
+            # Check whether the current running model is TRAIN
             if mode == ModeType.TRAIN:
                 with torch.autograd.set_detect_anomaly(True):
-                    # 清空优化器中存储的之前迭代的梯度信息,以便为当前迭代计算新的梯度
+                    # Clear the gradient information of previous iterations stored in the optimizer to calculate new gradients for the current iteration
                     optimizer.zero_grad()
-                    # 用于计算当前批次数据的损失,然后使用反向传播算法计算梯度,梯度用于调整模型的权重和参数,以减小损失值
+                    # Used to calculate the loss of the current batch of data, and then use the back propagation algorithm to calculate the gradient. The gradient is used to adjust the weights and parameters of the model to reduce the loss value.
                     loss.backward()
-                    # 通过根据梯度更新模型的权重和参数，以减小损失值
+                    # Reduce the loss value by updating the weights and parameters of the model according to the gradient
                     optimizer.step()
                     continue
             total_loss += loss.item()
-            # 这一段代码用于处理模型的原始预测结果的logits,将其转换为概率或分数的形式
             if not is_multi:
                 result = torch.nn.functional.softmax(logits, dim=1).cpu().tolist()
             else:
                 result = torch.sigmoid(logits).cpu().tolist()
-                # print("输出result:",result)
-            # 将模型的预测结果和真实标签收集到两个不同的列表predict_probs和standarf_labels
             predict_probs.extend(result)
             standard_labels.extend(batch[ClassificationDataset.DOC_LABEL_LIST])
 
             """
-            首先计算平均损失函数值。
-            然后，调用self.evaluator.evaluate()函数计算模型在评估集上的性能指标。
-            该函数的输入参数包括预测概率值predict_probs、标准标签standard_labels、标签映射label_map、阈值threshold、top-k值top_k
-            以及是否进行多标签分类is_multi。
-            函数返回的是一个元组，包含多个性能指标，如precision、recall、fscore等。
+            First calculate the average loss function value.
+             Then, call the self.evaluator.evaluate() function to calculate the performance indicators of the model on the evaluation set.
+             The input parameters of this function include predicted probability value predict_probs, standard label standard_labels, label map label_map, threshold threshold, top-k value top_k
+             And whether to perform multi-label classification is_multi.
+             The function returns a tuple containing multiple performance indicators, such as precision, recall, fscore, etc.
             """
-        # 检查当前的运行模式是否为评估模式
+        # Check whether the current running mode is evaluation mode
         if mode == ModeType.EVAL:
-            # 计算了总损失值的平均值
             total_loss = total_loss / num_batch
-            # self.evaluator.evaluate是一个评估器（evaluator）对象的evaluate方法的调用
-            # 评估器通常用于计算模型的性能指标如精度、召回率、F1分数
-            # 评估器使用参数包括 模型的预测概率、真实标签、标签映射以及其他配置参数来计算性能指标
-
-            #precision_list用于存储每各类别的精确值
-            # recall_list用于存储每个类别的召回率值
-            # fscore_list用于存储每个类别的F1分数值
-            # right_list用于存储正确预测的样本数
-            # predict_list用于存储模型的预测结果
-            # standard_list用于存储真实的标签信息
+            # precision_list is used to store the precise value of each category
+            # recall_list is used to store the recall value of each category
+            # fscore_list is used to store the F1 score value of each category
+            # right_list is used to store the number of correctly predicted samples
+            # predict_list is used to store the prediction results of the model
+            # standard_list is used to store real label information
             (_, precision_list, recall_list, fscore_list, right_list,
              predict_list, standard_list,AUC_epoch,AUPR_epoch) = \
                 self.evaluator.evaluate(
@@ -184,11 +165,7 @@ class ClassificationTrainer(object):
                     threshold=self.conf.eval.threshold, top_k=self.conf.eval.top_k,
                      is_multi=is_multi)
             # print("--------------",stage,AUC_epoch,AUPR_epoch)
-
-            # with open(csv_file_path, 'a', newline='') as file:
-            #     writer = csv.writer(file)
-            #     writer.writerow([stage, AUC_epoch, AUPR_epoch,total_loss])
-            # 在终端输出每训练阶段，验证阶段，测试阶段每一个epoch评估下的性能指标
+            # The terminal outputs the performance indicators evaluated in each epoch of each training phase, verification phase, and test phase.
             self.logger.warn(
                 "%s performance at epoch %d is precision: %f, "
                 "recall: %f, fscore: %f, macro-fscore: %f, right: %d, predict: %d, standard: %d.\n"
@@ -244,33 +221,32 @@ def train(conf, dir, fold,ngram):
 
         print("______________________Fold",i,"______________________")
         """
-        数据集中的train.json，test.json，valid.json文件
+        train.json, test.json, valid.json
         """
         conf.data.train_json_files=[os.path.join(dir, str(i),"train.json")]
-        # ['MiRNA_dataset/4\\0\\train.json']
         conf.data.test_json_files=[os.path.join(dir, str(i),"test.json")]
         conf.data.validate_json_files=[os.path.join(dir, str(i),"valid.json")]
 
-        logger = util.Logger(conf)#写入日志
-        #保存每次fold的训练参数在checkpoint_dir_miRNA中
+        logger = util.Logger(conf)# write log
+
         if not os.path.exists(conf.checkpoint_dir):
             os.makedirs(conf.checkpoint_dir)
 
-        model_name = conf.model_name#训练的模型PositionalCNN/TextRNN/Textcnn/Transformer
+        model_name = conf.model_name# TextRNN/Textcnn/Transformer
         dataset_name = "ClassificationDataset"
 
         """
-        collate_name用于指定数据加载器(DataLoader)中的数据处理函数(collate_fn)。
-        在这个脚本中，数据处理函数有两种，一种是FastTextCollator，另一种是ClassificationCollator。
-        FastTextCollator用于处理FastText模型的数据，而ClassificationCollator用于处理其他分类模型的数据。
-        collate_name的值会在get_data_loader()函数中被传递给DataLoader，以确定使用哪种数据处理函数。
+        collate_name is used to specify the data processing function (collate_fn) in the data loader (DataLoader).
+         In this script, there are two data processing functions, one is FastTextCollator and the other is ClassificationCollator.
+         FastTextCollator is used to process data from FastText models, while ClassificationCollator is used to process data from other classification models.
+         The value of collate_name will be passed to DataLoader in the get_data_loader() function to determine which data processing function to use.
         """
         collate_name = "FastTextCollator" if model_name == "FastText" \
             else "ClassificationCollator"
         train_data_loader, validate_data_loader, test_data_loader = \
             get_data_loader(dataset_name, collate_name, conf)
 
-        print("-----------------------输出加载后的训练数据----------------------------------------")
+
         print(train_data_loader)
         count=0
         for flag in train_data_loader:
@@ -279,23 +255,20 @@ def train(conf, dir, fold,ngram):
             count+=1
         """
         empty_dataset
-        用它来占位，以便在后续需要时进行替换。
-        在实际使用中，有时候我们需要在训练过程中动态地调整数据集的大小，比如在训练过程中逐渐增加数据集的规模。
-        这时，我们可以先使用empty_dataset创建一个空的数据集对象，然后在需要时再通过添加样本数据的方式来动态地扩充数据集。
+         Use it as a placeholder so you can replace it later if needed.
+         In actual use, sometimes we need to dynamically adjust the size of the data set during the training process, such as gradually increasing the size of the data set during the training process.
+         At this time, we can first use empty_dataset to create an empty dataset object, and then dynamically expand the dataset by adding sample data when needed.
         """
 
         empty_dataset = globals()[dataset_name](conf, [])
-        # print("________________________输出empty_dataset_________________________________",empty_dataset)
-        # print("____________________输出model_name_______________________",model_name)
         model = get_classification_model(model_name, empty_dataset, conf)
-        print("__________________________输出model________________________________",model)
         loss_fn = globals()["ClassificationLoss"](
             label_size=len(empty_dataset.label_map), loss_type=conf.train.loss_type)
         if(model == "Transformer" or model =="Textcnn"):
             optimizer  = model.parameters()
         else:
             optimizer = get_optimizer(conf, model)
-        evaluator = cEvaluator(conf.eval.dir)#(用于计算指标)
+        evaluator = cEvaluator(conf.eval.dir)
         trainer = globals()["ClassificationTrainer"](
             empty_dataset.label_map, logger, evaluator, conf, loss_fn)
 
@@ -306,13 +279,11 @@ def train(conf, dir, fold,ngram):
                            conf.train.start_epoch + conf.train.num_epochs):
             start_time = time.time()
             trainer.train(train_data_loader, model, optimizer, "Train", epoch)
-            # 对模型在训练过程中对训练集性能进行评估
-            # 输出  Train performance at epoch 14 is precision: 0.883192, recall: 0.971586, fscore: 0.925283, macro-fscore: 0.919722, right: 2291, predict: 2594, standard: 2358.
             trainer.eval(train_data_loader, model, optimizer, "Train", epoch)
             performance = trainer.eval(
                 validate_data_loader, model, optimizer, "Validate", epoch)
             trainer.eval(test_data_loader, model, optimizer, "test", epoch)
-            if performance[4] > best_performance:  # record the best model
+            if performance[4] > best_performance:
                 best_epoch = epoch
                 best_performance = performance[4]
             save_checkpoint({
@@ -321,28 +292,24 @@ def train(conf, dir, fold,ngram):
                 'state_dict': model.state_dict(),
                 'best_performance': best_performance,
                 'optimizer': optimizer.state_dict(),
-            }, model_file_prefix)#保存模型数据
+            }, model_file_prefix)#save the data of the model
             time_used = time.time() - start_time
             logger.info("Epoch %d cost time: %d second" % (epoch, time_used))
 
-        # best model on validateion set
         best_epoch_file_name = model_file_prefix + "_" + str(best_epoch)
         best_file_name = model_file_prefix + "_best"
         shutil.copyfile(best_epoch_file_name, best_file_name)
 
         load_checkpoint(model_file_prefix + "_" + str(best_epoch), conf, model,
                         optimizer)
-        #这边使用最佳模型对测试集进行评估，得到结果
-        # Best test performance at epoch 5 is precision: 0.953405, recall: 0.923611, fscore: 0.938272, macro-fscore: 0.934683, right: 266, predict: 279, standard: 288.
         trainer.eval(test_data_loader, model, optimizer, "Best test", best_epoch)
 
-        # 通过 训练好的模型对test数据集进行测试，调用eval.py
         evaluation_measures, fpr, tpr,roc_auc,prprecision,prrecall,praverage_precision,all_actual, all_pred,Cprecision,Crecall,Cf1,CAUC,CAUPR = kfold_eval(config)
         for z in range(len(all_actual)):
             sum_actual.append(all_actual[z])
             sum_pred.append(all_pred[z])
         save_ROC(ngram, i, fpr, tpr,roc_auc,prprecision,prrecall,praverage_precision)
-        # 将每一折的Precision、Recall、Accuracy、F1 score、f-1 Micro、f-1 Macro、Hamming Loss、averagePrecision、specificity先存储起来
+        # Store the Precision, Recall, Accuracy, F1 score, f-1 Micro, f-1 Macro, Hamming Loss, averagePrecision, and specificity of each fold first.
         sum_precision.append(evaluation_measures["Precision"])
         sum_recall.append(evaluation_measures["Recall"])
         sum_accuracy.append(evaluation_measures["Accuracy"])
@@ -360,7 +327,7 @@ def train(conf, dir, fold,ngram):
         # shutil.rmtree(conf.eval.model_dir.split("/")[0])
 
     print("_________________________________kfolds Metrics____________________________________")
-    save_sum('TextRNN_ATT+test', sum_actual, sum_pred)
+    save_sum('Improved TextRNN', sum_actual, sum_pred)
 
     print(Fore.BLUE + "k-fold  precision", sum(sum_precision) / fold)
     print(Fore.RED + str(sum_precision))
@@ -381,7 +348,6 @@ def train(conf, dir, fold,ngram):
     print(Fore.BLUE + "k-flod specificity ",sum(sum_specificity) / fold)
     print(Fore.RED + str(sum_specificity))
 
-
     with open('cnn_results', 'a', newline='') as file:
         writer = csv.writer(file)
         writer.writerow([str(ngram) + "Grams"])
@@ -394,25 +360,14 @@ if __name__ == '__main__':
     t1= time.time()
     kfold = 10
     ngrams=4
-    # for ngrams in range(3,5):
     """
-    从conf/train.json中获取超参
+    Get super parameters from conf/train.json
     """
-
     config = Config(config_file=sys.argv[1])
     os.environ['CUDA_VISIBLE_DEVICES'] = str(config.train.visible_device_list)
     torch.manual_seed(2019)
     torch.cuda.manual_seed(2019)
     config.feature.max_char_len_per_token = ngrams
-    """
-    with open('./ROC_results', 'w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(["Grams","kfold","fpr","tpr","roc_auc"])
-        file.close()
-    """
-    #训练 （超参，数据集，kfold,ngrams）
-
-    train(config, "dataset_preprocessing/piRNA_dataset/" + str(ngrams), kfold, ngrams)
+    train(config, "piRNA_dataset/" + str(ngrams), kfold, ngrams)
     t2 = time.time()
-
     print('Time:',t2-t1)
