@@ -368,6 +368,6 @@ if __name__ == '__main__':
     torch.manual_seed(2019)
     torch.cuda.manual_seed(2019)
     config.feature.max_char_len_per_token = ngrams
-    train(config, "dataset_preprocessing/piRNA_dataset/" + str(ngrams), kfold, ngrams)
+    train(config, "piRNA_dataset/" + str(ngrams), kfold, ngrams)
     t2 = time.time()
     print('Time:',t2-t1)
