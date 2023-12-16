@@ -35,7 +35,7 @@ dataset_name specifies the data set type, collate_name specifies the data proces
 def get_data_loader(dataset_name, collate_name, conf):  #例 ClassificationDataset,ClassificationCollator,conf
     """Get data loader: Train, Validate, Test
     """
-    # 将训练数据集生成一个词汇表，将文本文档转换为数字表示形式
+    # Generate a vocabulary from the training dataset and convert text documents into numerical representations
     train_dataset = globals()[dataset_name](
         conf, conf.data.train_json_files, generate_dict=True)#generate_dict是一个布尔值，表示是否需要生成词典,这个类会读取训练数据集文件，并将其转换为模型可以处理的格式
 
@@ -71,7 +71,6 @@ def get_classification_model(model_name, dataset, conf):
     """
     model = globals()[model_name](dataset, conf)
     model = model.cuda(conf.device) if conf.device.startswith("cuda") else model
-    print("使用cuda")
     return model
 
 """
