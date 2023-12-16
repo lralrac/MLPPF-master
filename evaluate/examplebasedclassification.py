@@ -223,13 +223,6 @@ def f1_scor(y_test, predictions):
     # num = (2 * float(pr) / float(re))
 
     # return num / y_test.shape[0]
-
-
-
-
-
-
-    #============================= junaid_iqbal_code ========================================
     f1 = 0.0
     for i in range(y_test.shape[0]):
         intersection = 0.0

@@ -15,9 +15,6 @@ def AucMacro(y_test, predictions):
         AUC Macro
     """
     aucMacro = roc_auc_score(y_test, predictions, average='macro')
-
-
-
     return aucMacro
 
 def AucMicro(y_test, predictions):

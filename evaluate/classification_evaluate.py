@@ -368,8 +368,6 @@ class ClassificationEvaluator(object):
                 confusion_matrix_list, precision_list, recall_list, fscore_list,
                 right_category_count_list, predict_category_count_list,
                 standard_category_count_list)
-        # print("输出precision_list:",precision_list)
-        # print("输出recall_list:",recall_list)
         return (confusion_matrix_list, precision_list, recall_list, fscore_list,
                 right_category_count_list, predict_category_count_list,
                 standard_category_count_list,AUC_epoch,AUPR_epoch)
