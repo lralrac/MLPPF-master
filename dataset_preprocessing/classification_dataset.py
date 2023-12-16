@@ -78,7 +78,6 @@ class ClassificationDataset(DatasetBase):
         self.label_map = dict()
         self.token_map = dict()
         self.char_map = dict()
-        # print("输出_init_dict中self.label_map",self.label_map)
 
         self.dicts = [self.label_map, self.token_map, self.char_map]
 
@@ -106,7 +105,6 @@ class ClassificationDataset(DatasetBase):
              ]
         # print(self.pretrained_dict_files)
 
-        # self.config.feature.min_token_count表示在加载或处理预训练词向量时，至少出现大于等于0次的词汇才会被保留或考虑
         self.pretrained_min_count = \
             [self.config.feature.min_token_count]
         # print(self.pretrained_min_count)
