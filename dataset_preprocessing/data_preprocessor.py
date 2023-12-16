@@ -28,7 +28,7 @@ def seq2ngram(seq, ngram1,ngram2=0, stride=2):
 
 # Output the folder path where the current python script is located
 print(os.getcwd())
-df1 = pd.read_csv("D:/PycharmProjects/MirLocPredictor-master/piRNA_multi.csv")
+df1 = pd.read_csv("D:/PycharmProjects/MLPPF-master/piRNA_multi.csv")
 print(os.getcwd())
 kf=KFold(n_splits=n_folds, random_state=42, shuffle=True)
 
