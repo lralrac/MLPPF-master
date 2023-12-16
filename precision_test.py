@@ -43,7 +43,7 @@ def true_label_convert(b, top_k):
         yi_true.append(temp_list)
         temp_list = [0]*top_k
 
-    print(yi_true)
+    # print(yi_true)
     return yi_true
 
 #=========================END SECTION actual labels to one hot encoding ============================================

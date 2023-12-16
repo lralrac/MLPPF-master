@@ -77,9 +77,6 @@
     "top_k": 2,
     "model_dir": "checkpoint_dir_piRNA/TextRNN_best"
   },
-   "PositionalCNN": {
-     "kernel_size": 3
-  },
   "log": {
     "logger_file": "log_test_piRNA_hierar",
     "log_level": "warn"
